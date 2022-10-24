@@ -1,13 +1,7 @@
-# Sample Hardhat Project
+# Steps after deploying:
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
-
-Try running some of the following tasks:
-
-```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
-```
+1. call function `premint` on *NightCatsGenesis*. totalSupply() will now be 33.
+2. call function `setIsWlMintLive` with `true` on *NightCatsGenesis*.
+3. now users can mint via `mint` function. If user mint is complete (i.e. totalSupply() is 300), skip to 4. Otherwise:
+   1. call function `setIsOpenMintLive` with `true` on *NightCatsGenesis* & wait for users to mint out.
+4. 
