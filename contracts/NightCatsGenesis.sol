@@ -25,10 +25,17 @@ contract NightCatsGenesis is ERC721A, Ownable {
     bool public isWlMintLive = false;
     bool public isOpenMintLive = false;
 
+    // states
+    uint256[] public godCatTokenIds;
+
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+    }
+
+    function setGodCatTokenIds(uint256[] calldata _godCatTokenIds) public onlyOwner {
+        godCatTokenIds = _godCatTokenIds;
     }
 
     function setMaxPerWallet(uint256 _maxPerWallet) public onlyOwner {
@@ -75,7 +82,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
         super._safeMint(msg.sender, premintSupply);
     }
 
-    function mint(bytes32[] memory _proof) public payable {
+    function mint(bytes32[] calldata _proof) public payable {
         require(isPreMintComplete, "Premint supply has not yet been minted!");
         require(msg.value >= mintPrice, "Not enough ETH sent!");
         if (!isOpenMintLive) {
@@ -86,5 +93,14 @@ contract NightCatsGenesis is ERC721A, Ownable {
         require(super.totalSupply() < (premintSupply + publicSupply), "Supply minted out!");
         mintedCount[msg.sender] += 1;
         super._safeMint(msg.sender, 1);
+    }
+
+    function isGodCat(uint256 _tokenId) public view returns(bool) {
+        for (uint256 i = 0; i < godCatTokenIds.length; i++) {
+            if (godCatTokenIds[i] == _tokenId) {
+                return true;
+            }
+        }
+        return false;
     }
 }
