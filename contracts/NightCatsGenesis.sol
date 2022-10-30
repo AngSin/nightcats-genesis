@@ -5,6 +5,7 @@ pragma solidity ^0.8.17;
 //import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
@@ -33,10 +34,35 @@ contract NightCatsGenesis is ERC721A, Ownable {
     uint256 public curseTimestamp;
     uint public cursePeriod = 3 days;
 
+    // uris
+    string public baseStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmVM3agU7eZXyvYgUwzX8LZFtgz4FfNR31pbLAH4Ykdtkb/";
+    string public cursedStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmYDxzyU5xqm5ZUMbJS8T3jUGeG6bQwdjDp4nvKQnkM2Xx/";
+    string public finalStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmWPLEsUJ5vXa8VrcdByTTxFUc7RkriGKtjrpGNU7WMiAU/";
+    string public godCatUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmTEVBu1BpBjNjZdx8wxXwkYAm2856Yvq58AC1mdcY9YuT/";
+
+    // libraries
+    using Strings for uint256;
+
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+    }
+
+    function setBaseStateUri(string calldata _baseStateUri) public onlyOwner {
+        baseStateUri = _baseStateUri;
+    }
+
+    function setCursedStateUri(string calldata _cursedStateUri) public onlyOwner {
+        cursedStateUri = _cursedStateUri;
+    }
+
+    function setFinalStateUri(string calldata _finalStateUri) public onlyOwner {
+        finalStateUri = _finalStateUri;
+    }
+
+    function setGodCatUri(string calldata _godCatUri) public onlyOwner {
+        godCatUri = _godCatUri;
     }
 
     function setGodCatTokenIds(uint256[] calldata _godCatTokenIds) public onlyOwner {
@@ -121,5 +147,18 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function isCurseActive() public view returns(bool){
         return (curseTimestamp + cursePeriod) >= block.timestamp;
+    }
+
+    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
+        if (isGodCat(_tokenId)) {
+            return string(abi.encodePacked(godCatUri, Strings.toString(_tokenId)));
+        }
+        if (curseCount > 2 || (curseCount == 2 && !isCurseActive())) {
+            return string(abi.encodePacked(finalStateUri, Strings.toString(_tokenId)));
+        }
+        if (isCurseActive() && curseCount < 3) {
+            return string(abi.encodePacked(cursedStateUri, Strings.toString(_tokenId)));
+        }
+        return string(abi.encodePacked(baseStateUri, Strings.toString(_tokenId)));
     }
 }
