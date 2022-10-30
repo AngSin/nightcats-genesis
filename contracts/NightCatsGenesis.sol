@@ -15,6 +15,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
     uint256 public reserveSupply = 33;
     uint256 public publicSupply = 267;
     uint256 public maxPerWallet = 1;
+    mapping(address => uint256) mintedCount;
 
     // whitelisting hex
     bytes32 public wlHex;
@@ -24,8 +25,11 @@ contract NightCatsGenesis is ERC721A, Ownable {
     bool public isWlMintLive = false;
     bool public isOpenMintLive = false;
 
-//    function setMintPrice(uint256 )
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
+
+    function setMintPrice(uint256 _mintPrice) public onlyOwner {
+        mintPrice = _mintPrice;
+    }
 
     function setMaxPerWallet(uint256 _maxPerWallet) public onlyOwner {
         maxPerWallet = _maxPerWallet;
@@ -71,14 +75,16 @@ contract NightCatsGenesis is ERC721A, Ownable {
         super._safeMint(msg.sender, premintSupply);
     }
 
-    function mint(bytes32[] memory _proof) public {
+    function mint(bytes32[] memory _proof) public payable {
         require(isPreMintComplete, "Premint supply has not yet been minted!");
+        require(msg.value >= mintPrice, "Not enough ETH sent!");
         if (!isOpenMintLive) {
             require(isWlMintLive, "Whitelist minting has not started yet");
             require(isValid(_proof, keccak256(abi.encodePacked(msg.sender))), "You are not whitelisted!");
         }
-        require(super.balanceOf(msg.sender) < maxPerWallet, "You have already minted enough!");
+        require(mintedCount[msg.sender] < maxPerWallet, "You have already minted enough!");
         require(super.totalSupply() < (premintSupply + publicSupply), "Supply minted out!");
+        mintedCount[msg.sender] += 1;
         super._safeMint(msg.sender, 1);
     }
 }
