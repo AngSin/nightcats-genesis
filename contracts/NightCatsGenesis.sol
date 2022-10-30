@@ -28,6 +28,11 @@ contract NightCatsGenesis is ERC721A, Ownable {
     // states
     uint256[] public godCatTokenIds;
 
+    // curse
+    uint256 public curseCount = 0;
+    uint256 public curseTimestamp;
+    uint public cursePeriod = 3 days;
+
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
@@ -36,6 +41,10 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function setGodCatTokenIds(uint256[] calldata _godCatTokenIds) public onlyOwner {
         godCatTokenIds = _godCatTokenIds;
+    }
+
+    function setCursePeriod(uint _cursePeriod) public onlyOwner {
+        cursePeriod = _cursePeriod;
     }
 
     function setMaxPerWallet(uint256 _maxPerWallet) public onlyOwner {
@@ -102,5 +111,15 @@ contract NightCatsGenesis is ERC721A, Ownable {
             }
         }
         return false;
+    }
+
+    function inflictCurse() public onlyOwner {
+        curseCount++;
+        curseTimestamp = block.timestamp;
+        // TODO: catsKilledDuringThisCurse = 0;
+    }
+
+    function isCurseActive() public view returns(bool){
+        return (curseTimestamp + cursePeriod) >= block.timestamp;
     }
 }
