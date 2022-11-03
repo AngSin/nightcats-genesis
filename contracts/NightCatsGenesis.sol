@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-// Uncomment this line to use console.log
 //import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -10,6 +9,9 @@ import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NightCatsGenesis is ERC721A, Ownable {
+    // contracts
+    address necklaceContract;
+
     // minting
     uint256 public mintPrice = 0.03 ether;
     uint256 public premintSupply = 33;
@@ -31,7 +33,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     // curse
     uint256 public curseCount = 0;
-    uint256 public curseTimestamp;
+    uint public curseTimestamp;
     uint public cursePeriod = 3 days;
 
     // uris
