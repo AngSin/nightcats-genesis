@@ -46,7 +46,7 @@ describe('neklace minting', () => {
 				.to.be.rejectedWith("This is not your cat!");
 		});
 
-		it("should not let cats claim more than 2", async () => {
+		it("should not let cats claim more than 2 necklaces per event", async () => {
 			const nightCatsContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 			const necklacesContract = await deployContract("Necklaces") as Necklaces;
 			await necklacesContract.setNightCatsContract(nightCatsContract.address);
@@ -57,6 +57,11 @@ describe('neklace minting', () => {
 			expect(await necklacesContract.totalSupply()).to.equal(2);
 			await expect(necklacesContract.claimNecklaces(0, false))
 				.to.be.revertedWith("You have already claimed the max amount!");
+			await necklacesContract.claimNecklaces(1, false);
+			expect(await necklacesContract.totalSupply()).to.equal(4);
+			await necklacesContract.startEvent();
+			await necklacesContract.claimNecklaces(0, false);
+			expect(await necklacesContract.totalSupply()).to.equal(6);
 		});
 	});
 });
