@@ -7,7 +7,7 @@ import keccak256 from "keccak256";
 describe("Genesis Cats minting", function () {
 	it('should allow minting only till max limit', async () => {
 		const [_, otherAccount] = await hre.ethers.getSigners();
-		const tree = createNewTree(otherAccount.address);
+		const tree = createNewTree([otherAccount.address]);
 		const genesisCats = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 		await genesisCats.setWlHex(bufferToHex(tree.getRoot()));
 		const hexProof = tree.getHexProof(keccak256(otherAccount.address));
@@ -26,7 +26,7 @@ describe("Genesis Cats minting", function () {
 
 	it('should not allow minting if not in WL', async () => {
 		const [_, otherAccount, otherAccount1] = await hre.ethers.getSigners();
-		const tree = createNewTree(otherAccount.address);
+		const tree = createNewTree([otherAccount.address]);
 		const genesisCats = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 		await genesisCats.setWlHex(bufferToHex(tree.getRoot()));
 		const hexProof = tree.getHexProof(keccak256(otherAccount1.address));

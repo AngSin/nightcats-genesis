@@ -3,7 +3,6 @@ pragma solidity ^0.8.17;
 
 //import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -98,9 +97,9 @@ contract NightCatsGenesis is ERC721A, Ownable {
     }
 
     function setIsWlMintLive(bool _isWlMintLive) public onlyOwner {
-        if (isPreMintComplete) {
-            isWlMintLive = _isWlMintLive;
-        }
+        require(isPreMintComplete, "You haven't pre-minted your cats yet!");
+        isWlMintLive = _isWlMintLive;
+
     }
 
     function setIsOpenMintLive(bool _isOpenMintLive) public onlyOwner {

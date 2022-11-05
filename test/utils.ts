@@ -10,8 +10,8 @@ export const deployContract = async (contractName: string) => {
 
 export const bufferToHex = (x: Buffer) => `0x${x.toString('hex')}`;
 
-export const createNewTree = (address: string) => {
-	const wlAddresses = [...addresses, address];
+export const createNewTree = (newAddresses: string[]) => {
+	const wlAddresses = [...addresses, ...newAddresses];
 	const leaves = wlAddresses.map((address: string) => keccak256(address));
 	const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 	return tree;
