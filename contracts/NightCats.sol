@@ -28,13 +28,20 @@ contract NightCats is ERC721A, Ownable {
     // libraries
     using Strings for uint256;
 
+    function setMaxSupply(uint256 _maxSupply) public onlyOwner {
+        maxSupply = _maxSupply;
+    }
+
     function setWlHex(bytes32 _wlHex) public onlyOwner {
         wlHex = _wlHex;
     }
 
     function setIsWlMintLive(bool _isWlMintLive) public onlyOwner {
         isWlMintLive = _isWlMintLive;
+    }
 
+    function setIsPublicMintLive(bool _isPublicMintLive) public onlyOwner {
+        isPublicMintLive = _isPublicMintLive;
     }
 
     function setWlMintPrice(uint256 _wlMintPrice) public onlyOwner {
@@ -56,21 +63,29 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function wlMint(bytes32[] calldata _proof, uint256 _mintAmount) public payable {
-        // TODO: Add test
         require(isWlMintLive, "WL Mint is not live!");
         require(msg.value >= (wlMintPrice * _mintAmount), "Not enough ETH sent!");
         require(mintedCount[msg.sender] < maxPerWallet, "You have already minted enough!");
         require(isValid(_proof, keccak256(abi.encodePacked(msg.sender))), "You are not whitelisted!");
         require(_mintAmount <= maxPerWallet, "You are attempting to mint more than you're allowed");
-        require((super.totalSupply() + _mintAmount) < maxSupply, "Supply minted out!");
+        require((super.totalSupply() + _mintAmount) <= maxSupply, "Attempting to mint above max supply!");
         mintedCount[msg.sender] += _mintAmount;
+        super._safeMint(msg.sender, _mintAmount);
+    }
+
+    function publicMint(uint256 _mintAmount) public payable {
+        require(isPublicMintLive, "Public Mint is not live!");
+        require(msg.value >= (publicMintPrice * _mintAmount), "Not enough ETH sent!");
+        require((super.totalSupply() + _mintAmount) <= maxSupply, "Attempting to mint above max supply!");
         super._safeMint(msg.sender, _mintAmount);
     }
 
     function claimGenesis(uint256[] calldata _catIds) public {
         // TODO:
         require(_catIds.length == 10, "You did not send 10 cats");
-//        require(super._numberBurned() < 330, "")
+        // requires
+//        require(super._numberBurned() < 221, "");
+
         for (uint256 i = 0; i < _catIds.length; i++) {
             uint256 _catId = _catIds[i];
             require(
