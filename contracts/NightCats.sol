@@ -28,6 +28,14 @@ contract NightCats is ERC721A, Ownable {
     // libraries
     using Strings for uint256;
 
+    function setGenesisContract(address _genesisContract) public onlyOwner {
+        genesisContract = _genesisContract;
+    }
+
+    function setNecklaceContract(address _necklaceContract) public onlyOwner {
+        necklaceContract = _necklaceContract;
+    }
+
     function setMaxSupply(uint256 _maxSupply) public onlyOwner {
         maxSupply = _maxSupply;
     }
@@ -80,19 +88,13 @@ contract NightCats is ERC721A, Ownable {
         super._safeMint(msg.sender, _mintAmount);
     }
 
-    function claimGenesis(uint256[] calldata _catIds) public {
-        // TODO:
-        require(_catIds.length == 10, "You did not send 10 cats");
-        // requires
-//        require(super._numberBurned() < 221, "");
+    modifier onlyGenesisContract() {
+        require(msg.sender == genesisContract, "You cannot call this function!");
+        _;
+    }
 
-        for (uint256 i = 0; i < _catIds.length; i++) {
-            uint256 _catId = _catIds[i];
-            require(
-                super.ownerOf(_catId) == msg.sender,
-                string(abi.encodePacked("You are not the owner of cat #", Strings.toString(_catId)))
-            );
-            super._burn(_catId);
-        }
+    function burn(uint256 _catId) external onlyGenesisContract returns (bool) {
+        super._burn(_catId);
+        return true;
     }
 }

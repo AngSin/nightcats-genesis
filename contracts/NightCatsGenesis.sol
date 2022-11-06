@@ -7,9 +7,14 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface INightCats {
+    function burn(uint256 _catId) external returns(bool);
+}
+
 contract NightCatsGenesis is ERC721A, Ownable {
     // contracts
     address necklaceContract;
+    address nightCatsContract;
 
     // minting
     uint256 public mintPrice = 0.03 ether;
@@ -48,6 +53,10 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+    }
+
+    function setNightCatsContract(address _nightCatsContract) public onlyOwner {
+        nightCatsContract = _nightCatsContract;
     }
 
     function setBaseStateUri(string calldata _baseStateUri) public onlyOwner {
@@ -161,5 +170,22 @@ contract NightCatsGenesis is ERC721A, Ownable {
             return string(abi.encodePacked(cursedStateUri, Strings.toString(_tokenId)));
         }
         return string(abi.encodePacked(baseStateUri, Strings.toString(_tokenId)));
+    }
+
+    function claimGenesis(uint256[] calldata _catIds) public {
+        require(_catIds.length == 10, "You did not send 10 cats");
+        require(super.totalSupply() < (premintSupply + publicSupply + reserveSupply), "Max limit reached!");
+
+        for (uint256 i = 0; i < _catIds.length; i++) {
+            uint256 _catId = _catIds[i];
+            require(
+                IERC721A(nightCatsContract).ownerOf(_catId) == msg.sender,
+                string(abi.encodePacked("You are not the owner of cat #", Strings.toString(_catId)))
+            );
+            bool success = INightCats(nightCatsContract).burn(_catId);
+            // no need to check for approvals as _burn does that
+            require(success, string(abi.encodePacked("Failed to burn cat #", Strings.toString(_catId))));
+        }
+        super._safeMint(msg.sender, 1);
     }
 }
