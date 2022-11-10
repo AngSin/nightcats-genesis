@@ -10,12 +10,15 @@ contract Necklaces is ERC721A, Ownable {
     address public nightCatsGenesisContract;
     address public nightCatsContract;
 
-    // necklace event
+    // events
     uint256 public eventCounter = 0;
     uint public eventTimestamp;
     uint256 public eventDuration = 3 days;
     mapping(uint256 => uint256)[] public catToNecklacesClaimed;
     uint256 maxClaimsPerEvent = 2;
+    uint public raffleTimestamp;
+    uint public rafflePeriod = 2 days;
+    uint256[] raffleEntries;
 
     // base uris
     string public immunityUri;
@@ -78,7 +81,7 @@ contract Necklaces is ERC721A, Ownable {
         _;
     }
 
-    function claimNecklaces(uint256 _catId, bool _isGenesis) public onlyWhenEventActive{
+    function claimNecklaces(uint256 _catId, bool _isGenesis) public onlyWhenEventActive {
         require(catToNecklacesClaimed[eventCounter-1][_catId] < maxClaimsPerEvent, "You have already claimed the max amount!");
         if (_isGenesis) {
             _checkGenesisCatOwnership(_catId);
@@ -99,5 +102,39 @@ contract Necklaces is ERC721A, Ownable {
         } else {
             return string(abi.encodePacked(immunityUri, Strings.toString(_tokenId)));
         }
+    }
+
+    function setRafflePeriod(uint _rafflePeriod) public onlyOwner {
+        rafflePeriod = _rafflePeriod;
+    }
+
+    function startRaffle() public onlyOwner {
+        delete raffleEntries;
+        raffleTimestamp = block.timestamp;
+    }
+
+    function isRaffleActive() public view returns(bool) {
+        return raffleTimestamp + rafflePeriod >= block.timestamp;
+    }
+
+    function fightGodCat(uint256 _catId, uint256[] calldata _necklaceIds) public {
+        require(isRaffleActive(), "Raffle not active!");
+        require(IERC721A(nightCatsGenesisContract).ownerOf(_catId) == msg.sender, "This is not your cat!");
+        for (uint256 i = 0; i < _necklaceIds.length; i++) {
+            uint256 _necklaceId = _necklaceIds[i];
+            require(super.ownerOf(_necklaceId) == msg.sender, "This necklace is not yours!");
+            super._burn(_necklaceId);
+            if (isResurrectionNecklace(_necklaceId)) {
+                raffleEntries.push(_catId);
+                raffleEntries.push(_catId);
+                raffleEntries.push(_catId);
+            } else {
+                raffleEntries.push(_catId);
+            }
+        }
+    }
+
+    function getRaffleEntries() public view onlyOwner returns (uint256[] memory){
+        return raffleEntries;
     }
 }

@@ -11,6 +11,10 @@ interface INightCats {
     function burn(uint256 _catId) external returns(bool);
 }
 
+interface INecklaces {
+    function isResurrectionNecklace(uint256 _necklaceId) external returns(bool);
+}
+
 contract NightCatsGenesis is ERC721A, Ownable {
     // contracts
     address necklaceContract;
@@ -41,8 +45,6 @@ contract NightCatsGenesis is ERC721A, Ownable {
     uint public cursePeriod = 3 days;
     uint public sacrificingRitualTimestamp;
     uint public sacrificePeriod = 1 days;
-    uint public raffleTimestamp;
-    uint public rafflePeriod = 2 days;
 
     // uris
     string public baseStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmVM3agU7eZXyvYgUwzX8LZFtgz4FfNR31pbLAH4Ykdtkb/";
@@ -57,10 +59,6 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
-    }
-
-    function setRafflePeriod(uint _rafflePeriod) public onlyOwner {
-        rafflePeriod = _rafflePeriod;
     }
 
     function setNightCatsContract(address _nightCatsContract) public onlyOwner {
