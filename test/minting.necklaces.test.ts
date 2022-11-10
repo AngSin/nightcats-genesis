@@ -7,13 +7,15 @@ describe('neklace minting', () => {
 	it('should let owner mint with right type', async () => {
 		const necklacesContract = await deployContract("Necklaces") as Necklaces;
 		await necklacesContract.ownerMint(7);
-		expect(await necklacesContract.tokenIdToType(0)).to.equal(1);
-		expect(await necklacesContract.tokenIdToType(1)).to.equal(0);
-		expect(await necklacesContract.tokenIdToType(2)).to.equal(0);
-		expect(await necklacesContract.tokenIdToType(3)).to.equal(1);
-		expect(await necklacesContract.tokenIdToType(4)).to.equal(0);
-		expect(await necklacesContract.tokenIdToType(5)).to.equal(0);
-		expect(await necklacesContract.tokenIdToType(6)).to.equal(1);
+		expect(await necklacesContract.isResurrectionNecklace(0)).to.equal(true);
+		expect(await necklacesContract.isImmunityNecklace(0)).to.equal(false);
+		expect(await necklacesContract.isResurrectionNecklace(1)).to.equal(false);
+		expect(await necklacesContract.isImmunityNecklace(1)).to.equal(true);
+		expect(await necklacesContract.isResurrectionNecklace(2)).to.equal(false);
+		expect(await necklacesContract.isResurrectionNecklace(3)).to.equal(true);
+		expect(await necklacesContract.isResurrectionNecklace(4)).to.equal(false);
+		expect(await necklacesContract.isResurrectionNecklace(5)).to.equal(false);
+		expect(await necklacesContract.isResurrectionNecklace(6)).to.equal(true);
 	});
 
 	describe("claim necklaces", () => {

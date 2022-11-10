@@ -10,12 +10,6 @@ contract Necklaces is ERC721A, Ownable {
     address public nightCatsGenesisContract;
     address public nightCatsContract;
 
-    // types
-    enum necklaceType { IMMUNITY, RESURRECTION }
-    necklaceType public immunity = necklaceType.IMMUNITY;
-    necklaceType public resurrection = necklaceType.RESURRECTION;
-    mapping(uint256 => necklaceType) public tokenIdToType;
-
     // necklace event
     uint256 public eventCounter = 0;
     uint public eventTimestamp;
@@ -33,15 +27,15 @@ contract Necklaces is ERC721A, Ownable {
         nightCatsGenesisContract = _nightCatsGenesisContract;
     }
 
+    function isResurrectionNecklace(uint256 _necklaceId) public pure returns(bool) {
+        return _necklaceId % 3 == 0;
+    }
+
+    function isImmunityNecklace(uint256 _necklaceId) public pure returns(bool) {
+        return _necklaceId % 3 != 0;
+    }
+
     function mint(uint256 _amount) private {
-        for (uint256 i = 0; i <= _amount; i++) {
-            uint256 tokenId = super.totalSupply() + i;
-            if (tokenId % 3 == 0) {
-                tokenIdToType[tokenId] = necklaceType.RESURRECTION;
-            } else {
-                tokenIdToType[tokenId] = necklaceType.IMMUNITY;
-            }
-        }
         super._safeMint(msg.sender, _amount);
     }
 

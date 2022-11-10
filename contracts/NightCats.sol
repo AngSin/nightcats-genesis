@@ -19,9 +19,11 @@ contract NightCats is ERC721A, Ownable {
     // minting
     uint256 public wlMintPrice = 0.025 ether;
     uint256 public publicMintPrice = 0.035 ether;
+    uint256 public premintSupply = 333;
     uint256 public maxSupply = 3333;
     uint256 public maxPerWallet = 3;
     mapping(address => uint256) mintedCount;
+    bool public isPreMintComplete = false;
     bool public isWlMintLive = false;
     bool public isPublicMintLive = false;
 
@@ -45,10 +47,12 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function setIsWlMintLive(bool _isWlMintLive) public onlyOwner {
+        require(isPreMintComplete, "You haven't pre-minted your cats yet!");
         isWlMintLive = _isWlMintLive;
     }
 
     function setIsPublicMintLive(bool _isPublicMintLive) public onlyOwner {
+        require(isPreMintComplete, "You haven't pre-minted your cats yet!");
         isPublicMintLive = _isPublicMintLive;
     }
 
@@ -68,6 +72,16 @@ contract NightCats is ERC721A, Ownable {
 
     function isValid(bytes32[] memory _proof, bytes32 _leaf) internal view returns(bool) {
         return MerkleProof.verify(_proof, wlHex, _leaf);
+    }
+
+    function setPremintSupply(uint256 _premintSupply) public onlyOwner {
+        premintSupply = _premintSupply;
+    }
+
+    function premint() public onlyOwner {
+        require (isPreMintComplete == false, "Reserve is already minted!");
+        isPreMintComplete = true;
+        super._safeMint(msg.sender, premintSupply);
     }
 
     function wlMint(bytes32[] calldata _proof, uint256 _mintAmount) public payable {

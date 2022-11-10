@@ -35,10 +35,14 @@ contract NightCatsGenesis is ERC721A, Ownable {
     // states
     uint256[] public godCatTokenIds;
 
-    // curse
+    // curse/rituals
     uint256 public curseCount = 0;
     uint public curseTimestamp;
     uint public cursePeriod = 3 days;
+    uint public sacrificingRitualTimestamp;
+    uint public sacrificePeriod = 1 days;
+    uint public raffleTimestamp;
+    uint public rafflePeriod = 2 days;
 
     // uris
     string public baseStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmVM3agU7eZXyvYgUwzX8LZFtgz4FfNR31pbLAH4Ykdtkb/";
@@ -53,6 +57,10 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+    }
+
+    function setRafflePeriod(uint _rafflePeriod) public onlyOwner {
+        rafflePeriod = _rafflePeriod;
     }
 
     function setNightCatsContract(address _nightCatsContract) public onlyOwner {
@@ -100,15 +108,13 @@ contract NightCatsGenesis is ERC721A, Ownable {
     }
 
     function setPublicSupply(uint256 _publicSupply) public onlyOwner {
-        if (isPreMintComplete) {
-            publicSupply = _publicSupply;
-        }
+        require(isPreMintComplete, "You haven't pre-minted your cats yet!");
+        publicSupply = _publicSupply;
     }
 
     function setIsWlMintLive(bool _isWlMintLive) public onlyOwner {
         require(isPreMintComplete, "You haven't pre-minted your cats yet!");
         isWlMintLive = _isWlMintLive;
-
     }
 
     function setIsOpenMintLive(bool _isOpenMintLive) public onlyOwner {
@@ -172,7 +178,16 @@ contract NightCatsGenesis is ERC721A, Ownable {
         return string(abi.encodePacked(baseStateUri, Strings.toString(_tokenId)));
     }
 
+    function startSacrificingRitual() public onlyOwner {
+        sacrificingRitualTimestamp = block.timestamp;
+    }
+
+    function isSacrificePeriodActive() public view returns(bool) {
+        return sacrificingRitualTimestamp + sacrificePeriod >= block.timestamp;
+    }
+
     function claimGenesis(uint256[] calldata _catIds) public {
+        require(isSacrificePeriodActive(), "Sacrificing period is not yet active!");
         require(_catIds.length == 10, "You did not send 10 cats");
         require(super.totalSupply() < (premintSupply + publicSupply + reserveSupply), "Max limit reached!");
 

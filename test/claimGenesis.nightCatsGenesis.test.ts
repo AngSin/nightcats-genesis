@@ -10,12 +10,16 @@ describe("claim genesis", () => {
 		const nightCatsGenesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 		await nightCatsGenesisContract.setNightCatsContract(nightCatsContract.address);
 		await nightCatsContract.setGenesisContract(nightCatsGenesisContract.address);
+		await nightCatsContract.premint();
 		await nightCatsContract.setIsPublicMintLive(true);
 		await nightCatsContract.publicMint(40, { value: hre.ethers.utils.parseEther("1.4") });
 		await nightCatsGenesisContract.premint();
 		expect(await nightCatsGenesisContract.totalSupply()).to.equal(await nightCatsGenesisContract.premintSupply());
 		await nightCatsGenesisContract.setPublicSupply(0);
 		await nightCatsGenesisContract.setReserveSupply(2);
+		await expect(nightCatsGenesisContract.claimGenesis([0,1,2,3,4,5,6,7,8,9]))
+			.to.be.revertedWith("Sacrificing period is not yet active!");
+		await nightCatsGenesisContract.startSacrificingRitual();
 		await expect(nightCatsGenesisContract.connect(otherAccount).claimGenesis([0,1,2,3,4,5,6,7,8,9]))
 			.to.be.revertedWith("You are not the owner of cat #0");
 		await nightCatsGenesisContract.claimGenesis([0,1,2,3,4,5,6,7,8,9]);
@@ -29,7 +33,7 @@ describe("claim genesis", () => {
 	});
 
 	it("should revert if burning of nightCats failed", async () => {
-		const [deployerOfContract, otherAccount] = await hre.ethers.getSigners();
+		const [deployerOfContract] = await hre.ethers.getSigners();
 		const NightCats = require('../artifacts/contracts/NightCats.sol/NightCats.json');
 		const nightCatsContract = await waffle.deployMockContract(deployerOfContract, NightCats.abi);
 		await nightCatsContract.mock.burn.revertsWithReason("Burning failed");
@@ -40,6 +44,7 @@ describe("claim genesis", () => {
 		expect(await nightCatsGenesisContract.totalSupply()).to.equal(await nightCatsGenesisContract.premintSupply());
 		await nightCatsGenesisContract.setPublicSupply(0);
 		await nightCatsGenesisContract.setReserveSupply(2);
+		await nightCatsGenesisContract.startSacrificingRitual();
 		await expect(nightCatsGenesisContract.claimGenesis([0,1,2,3,4,5,6,7,8,9]))
 			.to.be.revertedWith("VM Exception while processing transaction: reverted with reason string 'Burning failed'");
 	});
