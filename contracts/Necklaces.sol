@@ -17,7 +17,19 @@ contract Necklaces is ERC721A, Ownable {
     mapping(uint256 => uint256)[] public catToNecklacesClaimed;
     uint256 maxClaimsPerEvent = 2;
 
+    // base uris
+    string public immunityUri;
+    string public resurrectionUri;
+
     constructor() ERC721A("Necklaces", "NLACES") {}
+
+    function setImmunityUri(string calldata _immunityUri) public onlyOwner {
+        immunityUri = _immunityUri;
+    }
+
+    function setResurrectionUri(string calldata _resurrectionUri) public onlyOwner {
+        resurrectionUri = _resurrectionUri;
+    }
 
     function setNightCatsContract(address _nightCatsContract) public onlyOwner {
         nightCatsContract = _nightCatsContract;
@@ -79,5 +91,13 @@ contract Necklaces is ERC721A, Ownable {
 
     function ownerMint(uint256 _amount) public onlyOwner {
         mint(_amount);
+    }
+
+    function tokenURI(uint256 _tokenId) override public view returns (string memory) {
+        if (isResurrectionNecklace(_tokenId)) {
+            return string(abi.encodePacked(resurrectionUri, Strings.toString(_tokenId)));
+        } else {
+            return string(abi.encodePacked(immunityUri, Strings.toString(_tokenId)));
+        }
     }
 }
