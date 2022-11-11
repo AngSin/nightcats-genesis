@@ -9,6 +9,12 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 interface INightCats {
     function burn(uint256 _catId) external returns(bool);
+
+    function isCatDead(uint256 _catId) external returns(bool);
+
+    function killCat(uint256 _catId) external returns(bool);
+
+    function isCatCurrentlyImmune(uint256 _catId) external returns(bool);
 }
 
 interface INecklaces {
@@ -45,6 +51,8 @@ contract NightCatsGenesis is ERC721A, Ownable {
     uint public cursePeriod = 3 days;
     uint public sacrificingRitualTimestamp;
     uint public sacrificePeriod = 1 days;
+    uint256 public maxKillsPerCurse = 69;
+    mapping(uint256 => uint256) public godCatToKills;
 
     // uris
     string public baseStateUri = "https://ultrasupahotfire.mypinata.cloud/ipfs/QmVM3agU7eZXyvYgUwzX8LZFtgz4FfNR31pbLAH4Ykdtkb/";
@@ -59,6 +67,10 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
+    }
+
+    function setMaxKillsPerCurse(uint256 _maxKillsPerCurse) public onlyOwner {
+        maxKillsPerCurse = _maxKillsPerCurse;
     }
 
     function setNightCatsContract(address _nightCatsContract) public onlyOwner {
@@ -155,8 +167,11 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     function inflictCurse() public onlyOwner {
         curseCount++;
+        for (uint256 i = 0; i < godCatTokenIds.length; i++) {
+            uint256 godCatTokenId = godCatTokenIds[i];
+            delete godCatToKills[godCatTokenId];
+        }
         curseTimestamp = block.timestamp;
-        // TODO: catsKilledDuringThisCurse = 0;
     }
 
     function isCurseActive() public view returns(bool){
@@ -195,10 +210,39 @@ contract NightCatsGenesis is ERC721A, Ownable {
                 IERC721A(nightCatsContract).ownerOf(_catId) == msg.sender,
                 string(abi.encodePacked("You are not the owner of cat #", Strings.toString(_catId)))
             );
+            require(
+               !INightCats(nightCatsContract).isCatDead(_catId),
+               "This cat is dead!"
+            );
             bool success = INightCats(nightCatsContract).burn(_catId);
             // no need to check for approvals as _burn does that
             require(success, string(abi.encodePacked("Failed to burn cat #", Strings.toString(_catId))));
         }
         super._safeMint(msg.sender, 1);
+    }
+
+    modifier onlyWhenCurseActive() {
+        require(isCurseActive(), "Curse is not active!");
+        _;
+    }
+
+    function getTotalKillsThisCurse() public returns (uint256) {
+        uint256 totalKills = 0;
+        for (uint256 i = 0; i < godCatTokenIds.length; i++) {
+            uint256 godCatTokenId = godCatTokenIds[i];
+            totalKills += godCatToKills[godCatTokenId];
+        }
+        return totalKills;
+    }
+
+    function killCat(uint256 _godCatId, uint256 _victimCatId) public onlyWhenCurseActive {
+        // TODO: add test
+        require(curseCount > 1, "You can't kill yet!");
+        require(getTotalKillsThisCurse() < maxKillsPerCurse, "Max amount of kills per curse reached.");
+        require(!INightCats(nightCatsContract).isCatCurrentlyImmune(_victimCatId), "Cat is currently immune");
+        require(!INightCats(nightCatsContract).isCatDead(_victimCatId), "Cat is already dead!");
+        require(isGodCat(_godCatId), "Cat is not a god cat!");
+        godCatToKills[_godCatId]++;
+        INightCats(nightCatsContract).killCat(_victimCatId);
     }
 }

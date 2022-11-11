@@ -6,12 +6,19 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
+interface INecklaces {
+    function eventCounter() external returns(uint256);
+}
+
 contract NightCats is ERC721A, Ownable {
     // contracts
     address necklaceContract;
     address genesisContract;
 
     // states
+    mapping(uint256 => bool)[] public isCatImmunePerEvent;
+    string public immuneState = "immune";
+    mapping(uint256 => bool) public isCatDead;
 
     // whitelisting hex
     bytes32 public wlHex;
@@ -111,4 +118,38 @@ contract NightCats is ERC721A, Ownable {
         super._burn(_catId);
         return true;
     }
+
+    function isCatCurrentlyImmune(uint256 _catId) public view returns(bool) {
+        return isCatImmunePerEvent[isCatImmunePerEvent.length - 1][_catId];
+    }
+
+    modifier onlyOperatorContracts() {
+        require(
+            msg.sender == genesisContract ||
+            msg.sender == necklaceContract,
+            "Caller was neither owner nor an operator contract"
+        );
+        _;
+    }
+
+    function giveCatImmunity(uint256 _catId) public onlyOperatorContracts {
+        uint256 eventCount = INecklaces(necklaceContract).eventCounter();
+        require(eventCount > 0, "Can't change state before an event");
+        uint256 eventIndex = eventCount - 1;
+        isCatImmunePerEvent[eventIndex][_catId] = true;
+    }
+
+    function killCat(uint256 _catId) public onlyOperatorContracts {
+        isCatDead[_catId] = true;
+    }
+
+    function resurrectCat(uint256 _catId) public onlyOperatorContracts {
+        isCatDead[_catId] = false;
+    }
+
+    function newImmunityRecord() public onlyOperatorContracts {
+        isCatImmunePerEvent.push();
+    }
+
+    // TODO: TokenURI
 }

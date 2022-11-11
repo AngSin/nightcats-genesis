@@ -37,6 +37,7 @@ describe("claim genesis", () => {
 		const NightCats = require('../artifacts/contracts/NightCats.sol/NightCats.json');
 		const nightCatsContract = await waffle.deployMockContract(deployerOfContract, NightCats.abi);
 		await nightCatsContract.mock.burn.revertsWithReason("Burning failed");
+		await nightCatsContract.mock.isCatDead.returns(false);
 		await nightCatsContract.mock.ownerOf.returns(deployerOfContract.address);
 		const nightCatsGenesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 		await nightCatsGenesisContract.setNightCatsContract(nightCatsContract.address);

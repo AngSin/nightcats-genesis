@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import hre  from "hardhat";
 import { deployContract } from "./utils";
-import { NightCatsGenesis, Necklaces } from "../typechain-types";
+import {NightCatsGenesis, Necklaces, NightCats} from "../typechain-types";
 
 describe('neklace minting', () => {
 	it('should let owner mint with right type', async () => {
@@ -20,16 +20,21 @@ describe('neklace minting', () => {
 
 	describe("claim necklaces", () => {
 		it("should only work when event is active", async () => {
+			const nightCatsContract = await deployContract("NightCats") as NightCats;
 			const nightCatsGenesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 			const necklacesContract = await deployContract("Necklaces") as Necklaces;
+			await necklacesContract.setNightCatsContract(nightCatsContract.address);
 			await necklacesContract.setNightCatsGenesisContract(nightCatsGenesisContract.address);
 			await expect(necklacesContract.claimNecklaces(0, true)).to.be.rejectedWith("Event is not Active!");
 		});
 
 		it("should only work for genesis cat owners", async () => {
 			const [_, otherAccount] = await hre.ethers.getSigners();
+			const nightCatsContract = await deployContract("NightCats") as NightCats;
 			const nightCatsGenesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 			const necklacesContract = await deployContract("Necklaces") as Necklaces;
+			await necklacesContract.setNightCatsContract(nightCatsContract.address);
+			await nightCatsContract.setNecklaceContract(necklacesContract.address);
 			await necklacesContract.setNightCatsGenesisContract(nightCatsGenesisContract.address);
 			await necklacesContract.startEvent();
 			await nightCatsGenesisContract.premint();
@@ -39,20 +44,27 @@ describe('neklace minting', () => {
 
 		it("should only work for cat owners", async () => {
 			const [_, otherAccount] = await hre.ethers.getSigners();
-			const nightCatsContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
+			const nightCatsContract = await deployContract("NightCats") as NightCats;
+			const genesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
 			const necklacesContract = await deployContract("Necklaces") as Necklaces;
 			await necklacesContract.setNightCatsContract(nightCatsContract.address);
+			await necklacesContract.setNightCatsGenesisContract(genesisContract.address);
+			await nightCatsContract.setNecklaceContract(necklacesContract.address);
 			await necklacesContract.startEvent();
-			await nightCatsContract.premint();
-			await expect(necklacesContract.connect(otherAccount).claimNecklaces(0, false))
+			await genesisContract.premint();
+			await expect(necklacesContract.connect(otherAccount).claimNecklaces(0, true))
 				.to.be.rejectedWith("This is not your cat!");
 		});
 
 		it("should not let cats claim more than 2 necklaces per event", async () => {
-			const nightCatsContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
+			const genesisContract = await deployContract("NightCatsGenesis") as NightCatsGenesis;
+			const nightCatsContract = await deployContract("NightCats") as NightCats;
 			const necklacesContract = await deployContract("Necklaces") as Necklaces;
 			await necklacesContract.setNightCatsContract(nightCatsContract.address);
+			await necklacesContract.setNightCatsGenesisContract(genesisContract.address);
+			await nightCatsContract.setNecklaceContract(necklacesContract.address);
 			await necklacesContract.startEvent();
+			await genesisContract.premint();
 			await nightCatsContract.premint();
 			expect(await necklacesContract.totalSupply()).to.equal(0);
 			await necklacesContract.claimNecklaces(0, false);
