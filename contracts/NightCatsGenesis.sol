@@ -245,4 +245,6 @@ contract NightCatsGenesis is ERC721A, Ownable {
         godCatToKills[_godCatId]++;
         INightCats(nightCatsContract).killCat(_victimCatId);
     }
+
+    //TODO: withdraw function
 }

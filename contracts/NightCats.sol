@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 //import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
@@ -152,4 +152,6 @@ contract NightCats is ERC721A, Ownable {
     }
 
     // TODO: TokenURI
+
+    //TODO: withdraw function
 }

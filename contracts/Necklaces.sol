@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.17;
 
 //import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -81,6 +81,7 @@ contract Necklaces is ERC721A, Ownable {
     function startEvent() public onlyOwner {
         eventCounter++;
         catToNecklacesClaimed.push();
+        // TODO: move to inflictCurse
         INightCats(nightCatsContract).newImmunityRecord();
         eventTimestamp = block.timestamp;
     }

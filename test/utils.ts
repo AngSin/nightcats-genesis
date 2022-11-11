@@ -16,3 +16,10 @@ export const createNewTree = (newAddresses: string[]) => {
 	const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
 	return tree;
 };
+
+export const createTree = (newAddresses: string[]) => {
+	const wlAddresses = [...addresses, ...newAddresses];
+	const leaves = wlAddresses.map((address: string) => keccak256(address));
+	const tree = new MerkleTree(leaves, keccak256, { sortPairs: true });
+	return tree;
+};
