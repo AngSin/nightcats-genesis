@@ -65,6 +65,8 @@ contract NightCatsGenesis is ERC721A, Ownable {
 
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
 
+    // TODO: onlyOperators
+
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
     }
@@ -226,7 +228,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
         _;
     }
 
-    function getTotalKillsThisCurse() public returns (uint256) {
+    function getTotalKillsThisCurse() public view returns (uint256) {
         uint256 totalKills = 0;
         for (uint256 i = 0; i < godCatTokenIds.length; i++) {
             uint256 godCatTokenId = godCatTokenIds[i];
@@ -236,14 +238,13 @@ contract NightCatsGenesis is ERC721A, Ownable {
     }
 
     function killCat(uint256 _godCatId, uint256 _victimCatId) public onlyWhenCurseActive {
-        // TODO: add test
-        require(curseCount > 1, "You can't kill yet!");
-        require(getTotalKillsThisCurse() < maxKillsPerCurse, "Max amount of kills per curse reached.");
-        require(!INightCats(nightCatsContract).isCatCurrentlyImmune(_victimCatId), "Cat is currently immune");
-        require(!INightCats(nightCatsContract).isCatDead(_victimCatId), "Cat is already dead!");
+        require(curseCount > 2, "You can't kill yet!");
+        require(godCatToKills[_godCatId] < maxKillsPerCurse, "Max amount of kills per curse reached.");
         require(isGodCat(_godCatId), "Cat is not a god cat!");
+        require(super.ownerOf(_godCatId) == msg.sender, "This god cat is not yours!");
         godCatToKills[_godCatId]++;
-        INightCats(nightCatsContract).killCat(_victimCatId);
+        bool success = INightCats(nightCatsContract).killCat(_victimCatId);
+        require(success, "killing the cat failed!");
     }
 
     //TODO: withdraw function

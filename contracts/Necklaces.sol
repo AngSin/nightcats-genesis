@@ -81,7 +81,6 @@ contract Necklaces is ERC721A, Ownable {
     function startEvent() public onlyOwner {
         eventCounter++;
         catToNecklacesClaimed.push();
-        // TODO: move to inflictCurse
         INightCats(nightCatsContract).newImmunityRecord();
         eventTimestamp = block.timestamp;
     }

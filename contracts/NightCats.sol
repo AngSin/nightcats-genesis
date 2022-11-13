@@ -120,6 +120,9 @@ contract NightCats is ERC721A, Ownable {
     }
 
     function isCatCurrentlyImmune(uint256 _catId) public view returns(bool) {
+        if (isCatImmunePerEvent.length == 0) {
+            return false;
+        }
         return isCatImmunePerEvent[isCatImmunePerEvent.length - 1][_catId];
     }
 
@@ -127,7 +130,7 @@ contract NightCats is ERC721A, Ownable {
         require(
             msg.sender == genesisContract ||
             msg.sender == necklaceContract,
-            "Caller was neither owner nor an operator contract"
+            "Caller was not an operator contract"
         );
         _;
     }
@@ -139,8 +142,11 @@ contract NightCats is ERC721A, Ownable {
         isCatImmunePerEvent[eventIndex][_catId] = true;
     }
 
-    function killCat(uint256 _catId) public onlyOperatorContracts {
+    function killCat(uint256 _catId) public onlyOperatorContracts returns (bool) {
+        require(!isCatCurrentlyImmune(_catId), "Cat is currently immune");
+        require(!isCatDead[_catId], "Cat is dead!");
         isCatDead[_catId] = true;
+        return true;
     }
 
     function resurrectCat(uint256 _catId) public onlyOperatorContracts {
