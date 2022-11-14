@@ -8,8 +8,6 @@
 5. after minting, if you want to do a reveal, call `setBaseStateUri`
 6. 
 
-
-* Killing start on second curse?
 * Metadata
 * period durations
 * 

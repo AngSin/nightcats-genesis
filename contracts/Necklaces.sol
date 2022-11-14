@@ -109,7 +109,7 @@ contract Necklaces is ERC721A, Ownable {
     }
 
     modifier onlyWhenResurrectionRitual() {
-        require(isResurrectionRitualActive(), "Resurrection is not active!");
+        require(isResurrectionRitualActive(), "Resurrection ritual is not going on!");
         _;
     }
 
@@ -193,7 +193,6 @@ contract Necklaces is ERC721A, Ownable {
     function consumeResurrectionNecklace(uint256 _catId, uint256 _necklaceId) public
         catOwned(_catId) necklaceOwned(_necklaceId) onlyWhenResurrectionRitual
     {
-        // TODO: add test
         require(isResurrectionNecklace(_necklaceId), "This is not a resurrection necklace!");
         require(INightCats(nightCatsContract).isCatDead(_catId), "This cat is not dead!");
         super._burn(_necklaceId);
