@@ -37,6 +37,28 @@ contract Necklaces is ERC721A, Ownable {
     string public immunityUri;
     string public resurrectionUri;
 
+
+    // operators
+    address[] public operators;
+
+    function setOperators(address[] memory _operators) public onlyOwner {
+        operators =_operators;
+    }
+
+    modifier onlyOperators() {
+        bool allowedToCallFunc = false;
+        for(uint256 i = 0; i < operators.length; i++) {
+            if (msg.sender == operators[i]) {
+                allowedToCallFunc = true;
+            }
+        }
+        if (msg.sender == super.owner()) {
+            allowedToCallFunc = true;
+        }
+        require(allowedToCallFunc, "You are not allowed to call this function!");
+        _;
+    }
+
     constructor() ERC721A("Necklaces", "NLACES") {}
 
     function setImmunityUri(string calldata _immunityUri) public onlyOwner {
@@ -75,11 +97,11 @@ contract Necklaces is ERC721A, Ownable {
         eventDuration = _eventDuration;
     }
 
-    function startResurrectionPeriod() public onlyOwner {
+    function startResurrectionPeriod() public onlyOperators {
         resurrectionTimestamp = block.timestamp;
     }
 
-    function startEvent() public onlyOwner {
+    function startEvent() public onlyOperators {
         eventCounter++;
         catToNecklacesClaimed.push();
         INightCats(nightCatsContract).newImmunityRecord();
@@ -141,7 +163,7 @@ contract Necklaces is ERC721A, Ownable {
         rafflePeriod = _rafflePeriod;
     }
 
-    function startRaffle() public onlyOwner {
+    function startRaffle() public onlyOperators {
         delete raffleEntries;
         raffleTimestamp = block.timestamp;
     }

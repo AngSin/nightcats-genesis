@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.17;
 
-//import "hardhat/console.sol";
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "erc721a/contracts/ERC721A.sol"; // import "https://github.com/chiru-labs/ERC721A/blob/main/contracts/ERC721A.sol";
@@ -63,9 +62,28 @@ contract NightCatsGenesis is ERC721A, Ownable {
     // libraries
     using Strings for uint256;
 
+    // operators
+    address[] public operators;
+
     constructor() ERC721A("NightCatsGenesis", "GCATS") {}
 
-    // TODO: onlyOperators
+    function setOperators(address[] memory _operators) public onlyOwner {
+        operators =_operators;
+    }
+
+    modifier onlyOperators() {
+        bool allowedToCallFunc = false;
+        for(uint256 i = 0; i < operators.length; i++) {
+            if (msg.sender == operators[i]) {
+                allowedToCallFunc = true;
+            }
+        }
+        if (msg.sender == super.owner()) {
+            allowedToCallFunc = true;
+        }
+        require(allowedToCallFunc, "You are not allowed to call this function!");
+        _;
+    }
 
     function setMintPrice(uint256 _mintPrice) public onlyOwner {
         mintPrice = _mintPrice;
@@ -95,7 +113,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
         godCatUri = _godCatUri;
     }
 
-    function setGodCatTokenIds(uint256[] calldata _godCatTokenIds) public onlyOwner {
+    function setGodCatTokenIds(uint256[] calldata _godCatTokenIds) public onlyOperators {
         godCatTokenIds = _godCatTokenIds;
     }
 
@@ -167,7 +185,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
         return false;
     }
 
-    function inflictCurse() public onlyOwner {
+    function inflictCurse() public onlyOperators {
         curseCount++;
         for (uint256 i = 0; i < godCatTokenIds.length; i++) {
             uint256 godCatTokenId = godCatTokenIds[i];
@@ -193,7 +211,7 @@ contract NightCatsGenesis is ERC721A, Ownable {
         return string(abi.encodePacked(baseStateUri, Strings.toString(_tokenId)));
     }
 
-    function startSacrificingRitual() public onlyOwner {
+    function startSacrificingRitual() public onlyOperators {
         sacrificingRitualTimestamp = block.timestamp;
     }
 
